@@ -1,30 +1,41 @@
-import { View } from "react-native";
+// app/index.tsx
+import React, { useEffect, useState } from 'react';
+import { FlatList, View } from 'react-native';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import NoteForm from '../components/NoteForm';
+import NoteItem from '../components/Notes';
 
-import { Avatar, Button, Card, Text } from 'react-native-paper';
+interface Note {
+  id: string;
+  text: string;
+  createdAt: { seconds: number };
+}
 
-const LeftContent = props => <Avatar.Icon {...props} icon="folder" />
+export default function HomeScreen() {
+  const [notes, setNotes] = useState<Note[]>([]);
 
-export default function Index() {
+  useEffect(() => {
+    const q = query(collection(db, 'notes'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const notesData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Note[];
+      setNotes(notesData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Card>
-        <Card.Title title="Card Title" subtitle="Card Subtitle" left={LeftContent} />
-        <Card.Content>
-          <Text variant="titleLarge">Card title</Text>
-          <Text variant="bodyMedium">Card content</Text>
-        </Card.Content>
-        <Card.Cover source={{ uri: 'https://picsum.photos/700' }} />
-        <Card.Actions>
-          <Button>Cancel</Button>
-          <Button>Ok</Button>
-        </Card.Actions>
-      </Card>
+    <View style={{ flex: 1 }}>
+      <NoteForm />
+      <FlatList
+        data={notes}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <NoteItem note={item} />}
+      />
     </View>
   );
 }
