@@ -4,7 +4,7 @@ import { FlatList, View } from 'react-native';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import NoteForm from '../components/NoteForm';
-import NoteItem from '../components/Notes';
+import NoteItem from '../components/NoteItem';
 
 interface Note {
   id: string;
