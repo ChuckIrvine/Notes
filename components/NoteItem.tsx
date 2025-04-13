@@ -45,11 +45,9 @@ const NoteItem: React.FC<{ note: Note }> = ({ note }) => {
         await updateDoc(doc(db, 'notes', note.id), {
           text: editedText,
         });
-        setIsEditing(false);
-        alert('Note updated successfully!');
+        setIsEditing(false); // Close modal immediately after successful save
       } catch (error) {
         console.error('Error updating note:', error);
-        alert('Failed to update note.');
       }
     } else {
       alert('Note cannot be empty.');
