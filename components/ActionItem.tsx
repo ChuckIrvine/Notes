@@ -10,6 +10,7 @@ interface ActionItem {
   text: string;
   createdAt: { seconds: number };
   completed: boolean;
+  userId: string;
 }
 
 const ActionItem: React.FC<{ item: ActionItem }> = ({ item }) => {

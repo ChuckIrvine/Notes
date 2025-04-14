@@ -3,10 +3,13 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'expo-router';
 
 const ActionItemForm: React.FC = () => {
   const [itemText, setItemText] = useState('');
+  const router = useRouter();
 
   const handleAddItem = async () => {
     if (itemText.trim()) {
@@ -15,6 +18,7 @@ const ActionItemForm: React.FC = () => {
           text: itemText,
           createdAt: new Date(),
           completed: false,
+          userId: auth.currentUser?.uid,
         });
         setItemText('');
         alert('Action item added successfully!');
@@ -22,6 +26,16 @@ const ActionItemForm: React.FC = () => {
         console.error('Error adding action item:', error);
         alert('Failed to add action item.');
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      alert('Failed to log out.');
     }
   };
 
@@ -34,8 +48,11 @@ const ActionItemForm: React.FC = () => {
         mode="outlined"
         style={{ marginBottom: 16 }}
       />
-      <Button mode="contained" onPress={handleAddItem}>
+      <Button mode="contained" onPress={handleAddItem} style={{ marginBottom: 8 }}>
         Add Action Item
+      </Button>
+      <Button mode="outlined" onPress={handleLogout}>
+        Log Out
       </Button>
     </View>
   );

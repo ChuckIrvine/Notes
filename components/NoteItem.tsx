@@ -9,6 +9,7 @@ interface Note {
   id: string;
   text: string;
   createdAt: { seconds: number };
+  userId: string;
 }
 
 const NoteItem: React.FC<{ note: Note }> = ({ note }) => {

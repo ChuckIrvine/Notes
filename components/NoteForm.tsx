@@ -3,10 +3,13 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'expo-router';
 
 const NoteForm: React.FC = () => {
   const [noteText, setNoteText] = useState('');
+  const router = useRouter();
 
   const handleAddNote = async () => {
     if (noteText.trim()) {
@@ -14,6 +17,7 @@ const NoteForm: React.FC = () => {
         await addDoc(collection(db, 'notes'), {
           text: noteText,
           createdAt: new Date(),
+          userId: auth.currentUser?.uid,
         });
         setNoteText('');
         alert('Note added successfully!');
@@ -21,6 +25,16 @@ const NoteForm: React.FC = () => {
         console.error('Error adding note:', error);
         alert('Failed to add note.');
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      alert('Failed to log out.');
     }
   };
 
@@ -34,8 +48,11 @@ const NoteForm: React.FC = () => {
         multiline
         style={{ marginBottom: 16 }}
       />
-      <Button mode="contained" onPress={handleAddNote}>
+      <Button mode="contained" onPress={handleAddNote} style={{ marginBottom: 8 }}>
         Add Note
+      </Button>
+      <Button mode="outlined" onPress={handleLogout}>
+        Log Out
       </Button>
     </View>
   );
