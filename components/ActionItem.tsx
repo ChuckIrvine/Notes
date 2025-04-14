@@ -1,24 +1,25 @@
-// components/NoteItem.tsx
+// components/ActionItem.tsx
 import React, { useState } from 'react';
-import { Card, Title, Paragraph, IconButton, Portal, Modal, TextInput, Button } from 'react-native-paper';
+import { Card, Title, Paragraph, IconButton, Portal, Modal, TextInput, Button, Checkbox } from 'react-native-paper';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Alert, View } from 'react-native';
 
-interface Note {
+interface ActionItem {
   id: string;
   text: string;
   createdAt: { seconds: number };
+  completed: boolean;
 }
 
-const NoteItem: React.FC<{ note: Note }> = ({ note }) => {
+const ActionItem: React.FC<{ item: ActionItem }> = ({ item }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedText, setEditedText] = useState(note.text);
+  const [editedText, setEditedText] = useState(item.text);
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Note',
-      'Are you sure you want to delete this note?',
+      'Delete Action Item',
+      'Are you sure you want to delete this action item?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -26,11 +27,11 @@ const NoteItem: React.FC<{ note: Note }> = ({ note }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteDoc(doc(db, 'notes', note.id));
-              alert('Note deleted successfully!');
+              await deleteDoc(doc(db, 'actionItems', item.id));
+              alert('Action item deleted successfully!');
             } catch (error) {
-              console.error('Error deleting note:', error);
-              alert('Failed to delete note.');
+              console.error('Error deleting action item:', error);
+              alert('Failed to delete action item.');
             }
           },
         },
@@ -42,27 +43,44 @@ const NoteItem: React.FC<{ note: Note }> = ({ note }) => {
   const handleEdit = async () => {
     if (editedText.trim()) {
       try {
-        await updateDoc(doc(db, 'notes', note.id), {
+        await updateDoc(doc(db, 'actionItems', item.id), {
           text: editedText,
         });
         setIsEditing(false);
-        alert('Note updated successfully!');
+        alert('Action item updated successfully!');
       } catch (error) {
-        console.error('Error updating note:', error);
-        alert('Failed to update note.');
+        console.error('Error updating action item:', error);
+        alert('Failed to update action item.');
       }
     } else {
-      alert('Note cannot be empty.');
+      alert('Action item cannot be empty.');
+    }
+  };
+
+  const handleToggleComplete = async () => {
+    try {
+      await updateDoc(doc(db, 'actionItems', item.id), {
+        completed: !item.completed,
+      });
+    } catch (error) {
+      console.error('Error toggling action item:', error);
+      alert('Failed to toggle action item.');
     }
   };
 
   return (
     <Card style={{ margin: 8 }}>
       <Card.Content style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Checkbox
+          status={item.completed ? 'checked' : 'unchecked'}
+          onPress={handleToggleComplete}
+        />
         <Card.Content style={{ flex: 1 }}>
-          <Title>{note.text}</Title>
+          <Title style={{ textDecorationLine: item.completed ? 'line-through' : 'none' }}>
+            {item.text}
+          </Title>
           <Paragraph>
-            {new Date(note.createdAt.seconds * 1000).toLocaleString()}
+            {new Date(item.createdAt.seconds * 1000).toLocaleString()}
           </Paragraph>
         </Card.Content>
         <IconButton
@@ -70,14 +88,14 @@ const NoteItem: React.FC<{ note: Note }> = ({ note }) => {
           iconColor="#007bff"
           size={24}
           onPress={() => setIsEditing(true)}
-          accessibilityLabel="Edit note"
+          accessibilityLabel="Edit action item"
         />
         <IconButton
           icon="delete"
           iconColor="#ff0000"
           size={24}
           onPress={handleDelete}
-          accessibilityLabel="Delete note"
+          accessibilityLabel="Delete action item"
         />
       </Card.Content>
 
@@ -93,11 +111,10 @@ const NoteItem: React.FC<{ note: Note }> = ({ note }) => {
           }}
         >
           <TextInput
-            label="Edit note"
+            label="Edit action item"
             value={editedText}
             onChangeText={setEditedText}
             mode="outlined"
-            multiline
             style={{ marginBottom: 16 }}
           />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -114,4 +131,4 @@ const NoteItem: React.FC<{ note: Note }> = ({ note }) => {
   );
 };
 
-export default NoteItem;
+export default ActionItem;
